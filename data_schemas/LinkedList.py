@@ -54,13 +54,16 @@ class LinkedList:
             current = current.next
         print(" -> ".join(map(str, elements)))
     
-    def print_as_list(self, parameter: tuple = None):
+    def print_as_list(self, parameter: tuple = None, type: str = None):
       current = self.head
       counter = 0
         
       while current:
-        if parameter is None:
+        if parameter is None and type is None:
             print(f"{counter + 1}) {current.data}")
+            counter += 1
+        elif type:
+            print(f"{counter + 1}) {current.data.filename}")
             counter += 1
         else:
             key, value = parameter
@@ -69,6 +72,7 @@ class LinkedList:
                 if current.data.processed is bool(value):
                     print(f"{counter + 1}) {current.data}")
                     counter += 1
+                
 
         current = current.next
         

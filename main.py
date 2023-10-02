@@ -1,6 +1,21 @@
 from data_schemas.Db import Db
+from data_schemas.LinkedList import LinkedList
+from typing import Union
+import os
 
-db = Db()
+db = LinkedList()
+
+def check_file(ruta: str) -> Union[bool, str]:
+  if not os.path.exists(ruta):
+    return "# ERROR: El archivo no existe"
+  
+  extension = os.path.splitext(ruta)[1]
+  extension_correcta = ".xml"
+  
+  if extension != extension_correcta:
+    return f"# ERROR: Extensión incorrecta. Debe ser {extension_correcta}"
+  
+  return True
 
 print("PROYECTO 2")
 print("Luis Rodrigo Morales Florián")
@@ -27,17 +42,54 @@ while True:
     res2 = input("Ingrese el número de opción: ")
     
     if res2 == "1":
-      db = Db()
+      db = LinkedList()
       print("Los datos se han borrado con éxito")
   if res1 == "2":
-    pass
+    print("Ha elegido '2. Cargar un archivo XML de entrada'")
+    fl = input("Ingrese la ruta del archivo xml: ")
+    ck_f = check_file(fl)
+    if ck_f == True:
+      db.append(Db(filename=fl))
+      print("# ÉXITO: El archivo ha sido cargado con éxito")
+    else:
+      print(ck_f)
   if res1 == "3":
-    pass
+    print("Ha elegido '3. Generar un archivo XML de salida'")
+
+    if not db.is_empty():
+      db.print_as_list(type="files")
+      print("\n")
+      pos_elem = input("Elija número de archivo que quiere procesar: ")
+
+      db.get_elem_by_position(int(pos_elem)).data.process_file()
+    else:
+      print("# ERROR: No hay ningún archivo. Debe de subir un archivo xml")
+
   if res1 == "4":
-    pass
+    print("Ha elegido '4. Gestión de drones'")
+    res2 = input("Elija el número de archivo: ")
+    print("Opciones")
+    print("1. Ver listado de drones")
+    print("2. Agregar un nuevo dron")
+    res3 = input("Elija el número de opción: ")
   if res1 == "5":
-    pass
+    print("Has elegido '5. Gestión de sistemas de drones'")
+    res2 = input("Elija el número de archivo: ")
+    # Genera en graphviz
   if res1 == "6":
-    pass
+    print("Ha elegido '4. Gestión de drones'")
+    res2 = input("Elija el número de archivo: ")
+    print("Opciones")
+    print("1. Ver listado de mensajes y sus instrucciones")
+    print("2. Ver instrucciones para enviar un mensaje")
+    res3 = input("Elija el número de opción: ")
+    res4 = input("Seleccione un número de mensaje")
   if res1 == "7":
-    pass
+    print("Ha elegido '7. Ayuda'")
+    print("DATOS ESTUDIANTE")
+    print("- Luis Rodrigo Morales Florián")
+    print("- 202208521")
+    print("- LABORATORIO INTRODUCCION A LA PROGRAMACION Y COMPUTACION 2 Sección B")
+
+    print("\n")
+    print("Link de la documentación: https://")

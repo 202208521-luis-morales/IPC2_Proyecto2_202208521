@@ -1,13 +1,33 @@
-let db = {
+let db = [{
+  filename: String,
   systems: [{
-    drone: String,
-    system: [{
-      height: Number,
-      text: String
+    name: String,
+    dronesSystems: [{
+      drone: String,
+      system: [{
+        height: Number,
+        text: String,
+      }]
     }]
   }],
-  instructions: [{
-    drone: String,
-    moveNum: Number
+  messages: [{
+    name: String,
+    dronesSystem: String,
+    instructions: [{
+      drone: String,
+      moveNum: Number,
+      status: String // 
+    }]
+  }],
+  processedData: [{
+    messageName: String,
+    finalMessage: String,
+    rows: [{
+      time: Number,
+      instdrones: [{
+        drone: String,
+        inst: String,
+      }]
+    }]
   }]
-}
+}];
