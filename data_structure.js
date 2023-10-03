@@ -1,5 +1,6 @@
 let db = [{
   filename: String,
+  drones: ["drones_names"],
   systems: [{
     name: String,
     dronesSystems: [{

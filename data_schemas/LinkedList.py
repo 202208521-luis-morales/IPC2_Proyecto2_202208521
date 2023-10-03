@@ -62,8 +62,14 @@ class LinkedList:
         if parameter is None and type is None:
             print(f"{counter + 1}) {current.data}")
             counter += 1
-        elif type:
+        elif type == "files":
             print(f"{counter + 1}) {current.data.filename}")
+            counter += 1
+        elif type == "system_name":
+            print(f"{counter + 1}) {current.data.name}")
+            counter += 1
+        elif type == "processed_data":
+            print(f"{counter + 1}) {current.data.message_name}")
             counter += 1
         else:
             key, value = parameter
@@ -90,3 +96,13 @@ class LinkedList:
             counter += 1
 
         return None
+    
+    def get_length(self, position: int):
+        current = self.head
+
+        counter = 0
+        while current:
+            current = current.next
+            counter += 1
+
+        return counter

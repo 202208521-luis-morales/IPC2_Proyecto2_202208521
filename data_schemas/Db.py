@@ -9,6 +9,7 @@ from data_schemas.Rows import Rows
 from data_schemas.InstDrones import InstDrones
 
 import xml.etree.ElementTree as ET
+import graphviz
 
 class Db:
   def __init__(self, filename) -> None:
@@ -199,19 +200,227 @@ class Db:
 
     return founded_text
 
-      
+  def print_drones(self):
+    self.drones.print_as_list()
 
-  """
+  def add_drone(self, drone_name):
+    founded_drone = False
+
+    drone_counter = 1#self.drones.append(drone_name)
+    while True:
+      drone = self.drones.get_elem_by_position(drone_counter)
+      if drone:
+        if drone.data == drone_name:
+          founded_drone = True
+      else:
+        break
+      drone_counter +=1
+
+    if founded_drone:
+      print("# ERROR: El dron ya existe")
+    else:
+      self.drones.append(drone_name)
+
+  def generate_graph_drones_system(self):
+    self.systems.print_as_list(type="system_name")
+    drones_system_num = int(input("Elija el número de sistema que desea imprimir: "))
+
+    dot = graphviz.Digraph()
+    drones_sys = self.systems.get_elem_by_position(drones_system_num).data
+    dot.node("head", drones_sys.name, shape="circle")
+    dot.node("height", "Altura (mts)", shape="circle")
+    dot.edge("height","head")
+
+    # Agregar nodos de los nombre de los drones junto con su sistema
+    data_drones_system_counter = 1
+    while True:
+      data_drones_system = drones_sys.drones_systems.get_elem_by_position(data_drones_system_counter)
+
+      if data_drones_system:
+        dron_name = data_drones_system.data.name
+        dot.node(dron_name, dron_name)
+
+        system_counter = 1
+        while True:
+          system = data_drones_system.data.system.get_elem_by_position(system_counter)
+
+          if system:
+            if data_drones_system_counter == 1:
+              dot.node(str(system_counter), str(system_counter))
+              if system_counter == 1:
+                dot.edge(str(system_counter), "height")
+              else:
+                dot.edge(str(system_counter), str(system_counter - 1))
+
+            dot.node(str(system_counter) + dron_name, system.data.text if system.data.height == system_counter else "-")
+            if system_counter == 1:
+              dot.edge(str(system_counter) + dron_name, dron_name)
+            else:
+              dot.edge(str(system_counter) + dron_name, str(system_counter - 1) + dron_name)
+          else:
+            break
+          system_counter += 1
+      else:
+        break
+      data_drones_system_counter += 1
+    
+    dot.render("drones_system_graph", view=True)
+
+  def print_processed_data_by_processed_data_num(self, pr_dt_num):
+    message = self.processed_data.get_elem_by_position(pr_dt_num).data
+    print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+    print("Nombre del mensaje: " + message.message_name)
+    print("Mensaje Final: " + message.final_message)
+    print("Tiempo óptimo: " +message.rows.get_length())
+
+    row_counter = 1
+    while True:
+      row = message.rows.get_elem_by_position(row_counter)
+
+      if row:
+        row_to_print = str(row.data.time) + ","
+        first_row_to_print = str("Tiempo (seg)") + ","
+
+        instdrones_counter = 1
+        while True:
+          instdrones = row.instdrones.get_elem_by_position(row_counter)
+
+          if instdrones:
+            if row_counter == 1:
+              first_row_to_print += instdrones.data.drone + ","
+            row_to_print += str(instdrones.data.inst) + ","
+          else:
+            break
+          instdrones_counter += 1
+
+        if row_counter == 1:
+          print(first_row_to_print)
+        print(row_to_print)
+        
+      else:
+        break
+      row_counter += 1
+    print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+
+  def print_all_processed_data(self):
+    processed_data_counter = 1
+    while True:
+      processed_data = self.processed_data.get_elem_by_position(processed_data_counter)
+      if processed_data:
+        self.print_processed_data_by_processed_data_num(processed_data_counter)
+      else:
+        break
+      processed_data_counter += 1
+
+  def print_specific_processed_data(self):
+    self.processed_data.print_as_list(type="processed_data")
+    pr_dt_num = input("Elija el número de mensaje que quiere imprimir: ")
+
+    self.print_processed_data_by_processed_data_num(pr_dt_num)
+    self.generate_graph_specific_processed_data(pr_dt_num)
+
+  def generate_graph_specific_processed_data(self, pr_dt_num):
+    message = self.processed_data.get_elem_by_position(pr_dt_num).data
+
+    dot = graphviz.Digraph()
+
+    dot.node("head", f"Nombre mensaje: {message.message_name}")
+    dot.node("time_title", "Tiempo (seg)")
+    dot.edge("time_title", "head")
+    row_counter = 1
+    while True:
+      row = message.rows.get_elem_by_position(row_counter)
+
+      if row:
+        dot.node("t_" + str(row_counter), str(row.data.time))
+        if row_counter == 1:
+          dot.edge("t_" + str(row_counter), "time_title")
+        else:
+          dot.edge("t_" + str(row_counter), str(row_counter - 1))
+
+        instdrones_counter = 1
+        while True:
+          instdrones = row.instdrones.get_elem_by_position(row_counter)
+
+          if instdrones:
+            dot.node(str(row_counter) + instdrones.data.drone, instdrones.data.inst)
+
+            if row_counter == 1:
+              dot.node(instdrones.data.drone, instdrones.data.drone)
+              dot.edge(instdrones.data.drone, "head")
+              dot.edge(str(row_counter) + instdrones.data.drone, instdrones.data.drone)
+            else:
+              dot.edge(str(row_counter) + instdrones.data.drone, str(row_counter - 1) + instdrones.data.drone)
+
+          else:
+            break
+          instdrones_counter += 1
+        
+      else:
+        break
+      row_counter += 1
+    
+    dot.render("graph_processed_data", view=True)
+
   def generate_output_xml(self):
     root = ET.Element("respuesta")
     lista_mensajes = ET.SubElement(root, "listaMensajes")
 
-    counter = 1
+    processed_data_counter = 1
     while True:
-      message_elem = self.messages.get_elem_by_position(counter)
+      processed_data = self.processed_data.get_elem_by_position(processed_data_counter)
 
-      if message_elem:
-        mensaje = ET.SubElement(lista_mensajes, "mensaje", nombre=message_elem.data.name)
+      if processed_data:
+        mensaje = ET.SubElement(lista_mensajes, "mensaje", nombre=processed_data.data.message_name)
+        sistema_drones = ET.SubElement(mensaje, "sistemaDrones")
+        sistema_drones.text = self.get_drones_system_name_by_message_name(self, processed_data.data.message_name)
+        tiempo_optimo = ET.SubElement(mensaje, "tiempoOptimo")
+        tiempo_optimo.text = processed_data.data.rows.get_length()
+        mensaje_recibido = ET.SubElement(mensaje, "mensajeRecibido")
+        mensaje_recibido.text = processed_data.data.final_message
+
+        instrucciones = ET.SubElement(mensaje, "instrucciones")
+
+        row_counter = 1
+        while True:
+          row = processed_data.data.rows.get_elem_by_position(row_counter)
+
+          if row:
+            tiempo = ET.SubElement(instrucciones, "tiempo", valor=row.data.time)
+            acciones = ET.SubElement(tiempo, "acciones")
+
+            instdrones_counter = 1
+
+            while True:
+              instdrones = row.get_elem_by_position(instdrones_counter)
+
+              if instdrones:
+                dron = ET.SubElement(acciones, "dron", nombre=str(instdrones.data.drone))
+                dron.text = instdrones.data.inst
+              else:
+                break
+
+              instdrones_counter += 1
+          else:
+            break
+          row_counter += 1
       else:
         break
-  """
+
+      processed_data_counter += 1
+
+  def get_drones_system_name_by_message_name(self, message_name):
+    message_counter = 1
+    founded_drones_system_name = None
+
+    while True:
+      message = self.messages.get_elem_by_position(message_counter)
+      
+      if message:
+        if message.data.name == message_name:
+          founded_drones_system_name = message.data.drones_system
+      else:
+        break
+      message_counter += 1
+
+    return founded_drones_system_name

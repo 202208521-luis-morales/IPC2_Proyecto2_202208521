@@ -67,23 +67,57 @@ while True:
 
   if res1 == "4":
     print("Ha elegido '4. Gestión de drones'")
-    res2 = input("Elija el número de archivo: ")
-    print("Opciones")
-    print("1. Ver listado de drones")
-    print("2. Agregar un nuevo dron")
-    res3 = input("Elija el número de opción: ")
+    if not db.is_empty():
+      db.print_as_list(type="files")
+      print("\n")
+      pos_elem = input("Elija número de archivo que quiere procesar: ")
+      print("Opciones")
+      print("1. Ver listado de drones")
+      print("2. Agregar un nuevo dron")
+      res3 = input("Elija el número de opción: ")
+
+      if res3 == "1":
+        db.get_elem_by_position(int(pos_elem)).data.print_drones()
+      elif res3 == "2":
+        new_drone_name = input("Escriba el nombre del nuevo dron a agregar: ")
+        db.get_elem_by_position(int(pos_elem)).data.add_drone(new_drone_name)
+
+    else:
+      print("# ERROR: No hay ningún archivo. Debe de subir un archivo xml")
+    
   if res1 == "5":
     print("Has elegido '5. Gestión de sistemas de drones'")
-    res2 = input("Elija el número de archivo: ")
-    # Genera en graphviz
+    if not db.is_empty():
+      db.print_as_list(type="files")
+      print("\n")
+      pos_elem = input("Elija número de archivo que quiere procesar: ")
+      db.get_elem_by_position(int(pos_elem)).data.generate_graph_drones_system()
+      print("\n")
+      print("# ÉXITO: Gráfica generada con éxito")
+
+    else:
+      print("# ERROR: No hay ningún archivo. Debe de subir un archivo xml")
   if res1 == "6":
-    print("Ha elegido '4. Gestión de drones'")
-    res2 = input("Elija el número de archivo: ")
-    print("Opciones")
-    print("1. Ver listado de mensajes y sus instrucciones")
-    print("2. Ver instrucciones para enviar un mensaje")
-    res3 = input("Elija el número de opción: ")
-    res4 = input("Seleccione un número de mensaje")
+    print("Has elegido '6. Gestión de Mensajes'")
+    if not db.is_empty():
+      db.print_as_list(type="files")
+      print("\n")
+      pos_elem = input("Elija número de archivo que quiere procesar: ")
+      print("1. Ver listado de mensajes y sus instrucciones")
+      print("2. Ver instrucciones para enviar un mensaje")
+      res2 = input("Elija el número de opción: ")
+
+      if res2 == "1":
+        db.get_elem_by_position(pos_elem).data.print_all_processed_data()
+      elif res2 == "2":
+        pass
+
+      # db.get_elem_by_position(int(pos_elem)).data.generate_graph_drones_system()
+      print("\n")
+      print("# ÉXITO: Gráfica generada con éxito")
+
+    else:
+      print("# ERROR: No hay ningún archivo. Debe de subir un archivo xml")
   if res1 == "7":
     print("Ha elegido '7. Ayuda'")
     print("DATOS ESTUDIANTE")
