@@ -113,12 +113,9 @@ while True:
       if res2 == "1":
         db.get_elem_by_position(pos_elem).data.print_all_processed_data()
       elif res2 == "2":
-        pass
-
-      # db.get_elem_by_position(int(pos_elem)).data.generate_graph_drones_system()
-      print("\n")
-      print("# ÉXITO: Gráfica generada con éxito")
-
+        db.get_elem_by_position(int(pos_elem)).data.print_specific_processed_data()
+        print("\n")
+        print("# ÉXITO: Gráfica generada con éxito")
     else:
       print("# ERROR: No hay ningún archivo. Debe de subir un archivo xml")
   if res1 == "7":

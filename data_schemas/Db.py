@@ -308,8 +308,9 @@ class Db:
     print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
     print("Nombre del mensaje: " + message.message_name)
     print("Mensaje Final: " + message.final_message)
-    print("Tiempo óptimo: " +message.rows.get_length())
+    print("Tiempo óptimo: " + str(message.rows.get_length()))
 
+    print("--- TABLA ---")
     row_counter = 1
     while True:
       row = message.rows.get_elem_by_position(row_counter)
@@ -320,7 +321,7 @@ class Db:
 
         instdrones_counter = 1
         while True:
-          instdrones = row.instdrones.get_elem_by_position(row_counter)
+          instdrones = row.data.instdrones.get_elem_by_position(instdrones_counter)
 
           if instdrones:
             if row_counter == 1:
@@ -337,6 +338,7 @@ class Db:
       else:
         break
       row_counter += 1
+    print("--- FIN TABLA ---")
     print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
 
   def print_all_processed_data(self):
@@ -351,7 +353,7 @@ class Db:
 
   def print_specific_processed_data(self):
     self.processed_data.print_as_list(type="processed_data")
-    pr_dt_num = input("Elija el número de mensaje que quiere imprimir: ")
+    pr_dt_num = int(input("Elija el número de mensaje que quiere imprimir: "))
 
     self.print_processed_data_by_processed_data_num(pr_dt_num)
     self.generate_graph_specific_processed_data(pr_dt_num)
@@ -363,7 +365,7 @@ class Db:
 
     dot.node("head", f"Nombre mensaje: {message.message_name}")
     dot.node("time_title", "Tiempo (seg)")
-    dot.edge("time_title", "head")
+    dot.edge("head", "time_title")
     row_counter = 1
     while True:
       row = message.rows.get_elem_by_position(row_counter)
@@ -371,23 +373,23 @@ class Db:
       if row:
         dot.node("t_" + str(row_counter), str(row.data.time))
         if row_counter == 1:
-          dot.edge("t_" + str(row_counter), "time_title")
+          dot.edge("time_title", "t_" + str(row_counter))
         else:
-          dot.edge("t_" + str(row_counter), str(row_counter - 1))
+          dot.edge("t_"+ str(row_counter - 1), "t_" + str(row_counter))
 
         instdrones_counter = 1
         while True:
-          instdrones = row.instdrones.get_elem_by_position(row_counter)
+          instdrones = row.data.instdrones.get_elem_by_position(instdrones_counter)
 
           if instdrones:
             dot.node(str(row_counter) + instdrones.data.drone, instdrones.data.inst)
 
             if row_counter == 1:
               dot.node(instdrones.data.drone, instdrones.data.drone)
-              dot.edge(instdrones.data.drone, "head")
-              dot.edge(str(row_counter) + instdrones.data.drone, instdrones.data.drone)
+              dot.edge("head", instdrones.data.drone)
+              dot.edge(instdrones.data.drone, str(row_counter) + instdrones.data.drone)
             else:
-              dot.edge(str(row_counter) + instdrones.data.drone, str(row_counter - 1) + instdrones.data.drone)
+              dot.edge(str(row_counter - 1) + instdrones.data.drone, str(row_counter) + instdrones.data.drone)
 
           else:
             break
