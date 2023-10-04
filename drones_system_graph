@@ -1,0 +1,67 @@
+digraph {
+	head [label=NombreSistemaDrones]
+	height [label="Altura (mts)"]
+	head -> height
+	DronX [label=DronX]
+	head -> DronX
+	1 [label=1]
+	height -> 1
+	"1DronX" [label=A]
+	DronX -> "1DronX"
+	2 [label=2]
+	1 -> 2
+	"2DronX" [label=I]
+	"1DronX" -> "2DronX"
+	3 [label=3]
+	2 -> 3
+	"3DronX" [label=D]
+	"2DronX" -> "3DronX"
+	4 [label=4]
+	3 -> 4
+	"4DronX" [label=F]
+	"3DronX" -> "4DronX"
+	5 [label=5]
+	4 -> 5
+	"5DronX" [label=I]
+	"4DronX" -> "5DronX"
+	6 [label=6]
+	5 -> 6
+	"6DronX" [label=J]
+	"5DronX" -> "6DronX"
+	7 [label=7]
+	6 -> 7
+	"7DronX" [label=K]
+	"6DronX" -> "7DronX"
+	DronY [label=DronY]
+	head -> DronY
+	"1DronY" [label=2]
+	DronY -> "1DronY"
+	"2DronY" [label=C]
+	"1DronY" -> "2DronY"
+	"3DronY" [label=P]
+	"2DronY" -> "3DronY"
+	"4DronY" [label=G]
+	"3DronY" -> "4DronY"
+	"5DronY" [label=L]
+	"4DronY" -> "5DronY"
+	"6DronY" [label=M]
+	"5DronY" -> "6DronY"
+	"7DronY" [label=N]
+	"6DronY" -> "7DronY"
+	DronZ [label=DronZ]
+	head -> DronZ
+	"1DronZ" [label=B]
+	DronZ -> "1DronZ"
+	"2DronZ" [label=C]
+	"1DronZ" -> "2DronZ"
+	"3DronZ" [label=E]
+	"2DronZ" -> "3DronZ"
+	"4DronZ" [label=H]
+	"3DronZ" -> "4DronZ"
+	"5DronZ" [label=O]
+	"4DronZ" -> "5DronZ"
+	"6DronZ" [label=P]
+	"5DronZ" -> "6DronZ"
+	"7DronZ" [label=Q]
+	"6DronZ" -> "7DronZ"
+}

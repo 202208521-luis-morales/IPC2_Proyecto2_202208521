@@ -263,9 +263,9 @@ class Db:
 
     dot = graphviz.Digraph()
     drones_sys = self.systems.get_elem_by_position(drones_system_num).data
-    dot.node("head", drones_sys.name, shape="circle")
-    dot.node("height", "Altura (mts)", shape="circle")
-    dot.edge("height","head")
+    dot.node("head", drones_sys.name)
+    dot.node("height", "Altura (mts)")
+    dot.edge("head","height")
 
     # Agregar nodos de los nombre de los drones junto con su sistema
     data_drones_system_counter = 1
@@ -273,8 +273,9 @@ class Db:
       data_drones_system = drones_sys.drones_systems.get_elem_by_position(data_drones_system_counter)
 
       if data_drones_system:
-        dron_name = data_drones_system.data.name
+        dron_name = data_drones_system.data.drone
         dot.node(dron_name, dron_name)
+        dot.edge("head", dron_name)
 
         system_counter = 1
         while True:
@@ -284,15 +285,15 @@ class Db:
             if data_drones_system_counter == 1:
               dot.node(str(system_counter), str(system_counter))
               if system_counter == 1:
-                dot.edge(str(system_counter), "height")
+                dot.edge("height", str(system_counter))
               else:
-                dot.edge(str(system_counter), str(system_counter - 1))
+                dot.edge(str(system_counter - 1), str(system_counter))
 
-            dot.node(str(system_counter) + dron_name, system.data.text if system.data.height == system_counter else "-")
+            dot.node(str(system_counter) + dron_name, system.data.text if int(system.data.height) == system_counter else "-")
             if system_counter == 1:
-              dot.edge(str(system_counter) + dron_name, dron_name)
+              dot.edge(dron_name, str(system_counter) + dron_name)
             else:
-              dot.edge(str(system_counter) + dron_name, str(system_counter - 1) + dron_name)
+              dot.edge(str(system_counter - 1) + dron_name, str(system_counter) + dron_name)
           else:
             break
           system_counter += 1
