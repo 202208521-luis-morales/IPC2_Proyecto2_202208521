@@ -17,7 +17,7 @@ let db = [{
     instructions: [{
       drone: String,
       moveNum: Number,
-      status: String // 
+      status: String // "not-executed" | "executed" | "executing"
     }]
   }],
   processedData: [{

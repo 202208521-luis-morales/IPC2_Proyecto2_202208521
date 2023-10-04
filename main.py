@@ -63,7 +63,8 @@ while True:
       print("\n")
       pos_elem = input("Elija número de archivo que quiere procesar: ")
 
-      db.get_elem_by_position(int(pos_elem)).data.process_file()
+      db.get_elem_by_position(int(pos_elem)).data.generate_output_xml()
+      print("# ÉXITO: El archivo salida.xml ha sido generado en la raíz de este proyecto")
     else:
       print("# ERROR: No hay ningún archivo. Debe de subir un archivo xml")
 

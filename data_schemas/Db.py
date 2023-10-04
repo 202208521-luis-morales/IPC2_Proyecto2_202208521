@@ -203,8 +203,6 @@ class Db:
         break
         
       counter += 1
-    
-    self.print_data_all()
 
   def get_text_by_drones_system_drone_and_height(self, drones_systems, drone, height):
     founded_text = None
@@ -411,9 +409,9 @@ class Db:
       if processed_data:
         mensaje = ET.SubElement(lista_mensajes, "mensaje", nombre=processed_data.data.message_name)
         sistema_drones = ET.SubElement(mensaje, "sistemaDrones")
-        sistema_drones.text = self.get_drones_system_name_by_message_name(self, processed_data.data.message_name)
+        sistema_drones.text = self.get_drones_system_name_by_message_name(processed_data.data.message_name)
         tiempo_optimo = ET.SubElement(mensaje, "tiempoOptimo")
-        tiempo_optimo.text = processed_data.data.rows.get_length()
+        tiempo_optimo.text = str(processed_data.data.rows.get_length())
         mensaje_recibido = ET.SubElement(mensaje, "mensajeRecibido")
         mensaje_recibido.text = processed_data.data.final_message
 
@@ -424,13 +422,13 @@ class Db:
           row = processed_data.data.rows.get_elem_by_position(row_counter)
 
           if row:
-            tiempo = ET.SubElement(instrucciones, "tiempo", valor=row.data.time)
+            tiempo = ET.SubElement(instrucciones, "tiempo", valor=str(row.data.time))
             acciones = ET.SubElement(tiempo, "acciones")
 
             instdrones_counter = 1
 
             while True:
-              instdrones = row.get_elem_by_position(instdrones_counter)
+              instdrones = row.data.instdrones.get_elem_by_position(instdrones_counter)
 
               if instdrones:
                 dron = ET.SubElement(acciones, "dron", nombre=str(instdrones.data.drone))
@@ -446,6 +444,9 @@ class Db:
         break
 
       processed_data_counter += 1
+
+    tree = ET.ElementTree(root)
+    tree.write("salida.xml", xml_declaration=True, encoding="utf-8")
 
   def get_drones_system_name_by_message_name(self, message_name):
     message_counter = 1
