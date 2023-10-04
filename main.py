@@ -126,4 +126,4 @@ while True:
     print("- LABORATORIO INTRODUCCION A LA PROGRAMACION Y COMPUTACION 2 Sección B")
 
     print("\n")
-    print("Link de la documentación: https://")
+    print("Link de la documentación: https://github.com/202208521-luis-morales/IPC2_Proyecto2_202208521/blob/main/DOCUMENTACION.pdf")
