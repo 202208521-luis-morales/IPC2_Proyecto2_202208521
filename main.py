@@ -50,6 +50,8 @@ while True:
     ck_f = check_file(fl)
     if ck_f == True:
       db.append(Db(filename=fl))
+      db.get_elem_by_position(db.get_length()).data.process_file()
+      # db.get_elem_by_position(db.get_length()).data.print_data_all()
       print("# ÉXITO: El archivo ha sido cargado con éxito")
     else:
       print(ck_f)

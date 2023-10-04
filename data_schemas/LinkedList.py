@@ -97,7 +97,7 @@ class LinkedList:
 
         return None
     
-    def get_length(self, position: int):
+    def get_length(self):
         current = self.head
 
         counter = 0

@@ -10,6 +10,7 @@ from data_schemas.InstDrones import InstDrones
 
 import xml.etree.ElementTree as ET
 import graphviz
+import time as time_lib
 
 class Db:
   def __init__(self, filename) -> None:
@@ -37,7 +38,7 @@ class Db:
 
       # self.systems.append(Systems(sistema_drones.get("nombre")))
 
-      for contenido in sistema_drones.find("contenido"):
+      for contenido in sistema_drones.findall("contenido"):
         drones_systems_to_save = DronesSystems(contenido.find("dron").text)
 
         for altura in contenido.find("alturas").findall("altura"):
@@ -50,10 +51,10 @@ class Db:
     # Guardamos los datos de listaMensajes
     lista_mensajes = root.find("listaMensajes")
     for mensaje in lista_mensajes.findall("Mensaje"):
-      message_to_save = Messages(mensaje.get("nombre"), mensaje.find("sistemaDrones"))
+      message_to_save = Messages(mensaje.get("nombre"), mensaje.find("sistemaDrones").text)
 
-      for instruccion in mensaje.find("instrucciones").findall("instrucciones"):
-        message_to_save.set_instruction(Instruction(instruccion.get("dron"), instruccion.text))
+      for instruccion in mensaje.find("instrucciones").findall("instruccion"):
+        message_to_save.add_instruction(Instruction(instruccion.get("dron"), int(instruccion.text)))
 
       self.messages.append(message_to_save)
 
@@ -70,9 +71,10 @@ class Db:
         dron_counter = 1
         while True:
           if self.drones.get_elem_by_position(dron_counter):
-            drones_status(Instruction(self.drones.get_elem_by_position(dron_counter).data, 0))
+            drones_status.append(Instruction(self.drones.get_elem_by_position(dron_counter).data, 0))
           else:
             break
+          dron_counter += 1
         
         def check_if_all_inst_are_executed():
           are_all_executed = True
@@ -86,7 +88,7 @@ class Db:
                 break
             else:
               break
-          instructions_counter += 1
+            instructions_counter += 1
           
           return are_all_executed
       
@@ -102,28 +104,44 @@ class Db:
                 break
             else:
               break
-          instructions_counter += 1
+            instructions_counter += 1
           
           return ret_inst
 
-        instructions_counter = 1
-        executing_inst_setted = False
+        # La primera vez hace que la primera instrucción se esté ejecutando, las siguientes marca como "ejecutada"
+        # la que se estaba ejecutando y la siguiente la marca como "ejecutandose y así sucesivamente"
+        def go_to_next_inst():
+          instructions_counter = 1
 
-        # Seleccionar la instrucción que toca como "ejecutandose" o "executing"
-        while True:
-          inst = message_elem.data.instructions.get_elem_by_position(instructions_counter)
-          
-          if inst:
-            if inst.data.status == "not_exected" and executing_inst_setted == False:
-              inst.data.status = "executing"
-              executing_inst_setted = True
-          else:
-            break
+          while True:
+            inst = message_elem.data.instructions.get_elem_by_position(instructions_counter)
+
+            if inst:
+              # Si ya se llegó a ese último elemento y está executing, que lo marque ya como executed
+              if message_elem.data.instructions.get_length() == instructions_counter and inst.data.status == "executing":
+                inst.data.status = "executed"
+              elif inst.data.status == "not_exected":
+                # Marcar la anterior como ejecutada
+                if instructions_counter > 1:
+                  prev_inst = message_elem.data.instructions.get_elem_by_position(instructions_counter - 1)
+
+                  if prev_inst:
+                    prev_inst.data.status = "executed"
+                inst.data.status = "executing"
+                break
+            else:
+              break
+            instructions_counter += 1
+
+        # Ponemos la primera como ejecutándose
+        go_to_next_inst()
         
         time_counter = 1
         drones_status_counter = 1
         time_counter_changed = False
         row_to_save = Rows()
+
+        a_ins_was_executed = False
         while True:
           dr_sts = drones_status.get_elem_by_position(drones_status_counter)
           inst_drones_to_save = None
@@ -136,35 +154,57 @@ class Db:
             curr_inst = get_curr_inst_by_drone(dr_sts.data.drone)
 
             if curr_inst:
-              if curr_inst.move_num > dr_sts.move_num:
+              if curr_inst.move_num > dr_sts.data.move_num:
                 dr_sts.data.move_num += 1
                 inst_drones_to_save = InstDrones(dr_sts.data.drone, "Subir")
-              elif curr_inst.move_num < dr_sts.move_num:
+              elif curr_inst.move_num < dr_sts.data.move_num:
                 dr_sts.data.move_num -= 1
                 inst_drones_to_save = InstDrones(dr_sts.data.drone, "Bajar")
               else:
                 if curr_inst.status == "executing" and curr_inst.drone == dr_sts.data.drone:
                   inst_drones_to_save = InstDrones(dr_sts.data.drone, "Emitir Luz")
                   process_data_to_save.final_message = process_data_to_save.final_message + self.get_text_by_drones_system_drone_and_height(message_elem.data.drones_system, curr_inst.drone, curr_inst.move_num)
+                  
+                  # Marcamos que se acaba de ejecutar una instrucción y más adelante la cancelamos
+                  a_ins_was_executed = True
                 else:
                   inst_drones_to_save = InstDrones(dr_sts.data.drone, "Esperar")
+            
+            # Consideramos el caso donde no encuentra ninguna instrucción para su dron, por lo cual solo le queda esperar   
+            else:
+              inst_drones_to_save = InstDrones(dr_sts.data.drone, "Esperar")
+
+            # Marcamos la actual como ejecutada
+            # Si ya le dimos la vuelta a todos los drones, procede a marcar la instrucción que se está ejecutando
+            # como ejecutada y se ejecuta la siguiente
+            if drones_status.get_length() == drones_status_counter and a_ins_was_executed:
+              go_to_next_inst()
+              # Aquí cancelamos que fue ejecutada una instrucción para así pasar a la siguiente
+              a_ins_was_executed = False
 
             row_to_save.add_instdrones(inst_drones_to_save)
+            drones_status_counter += 1
           else:
-            process_data_to_save.add_row(row_to_save.set_time(time_counter))
+            row_to_save.set_time(time_counter)
+            process_data_to_save.add_row(row_to_save)
+
+            # Al registrar la última fila, chequea si queda otras instrucciones que ejecutar
+            # Si ya no hay, sale del ciclo
+            if check_if_all_inst_are_executed():
+              break
+
             drones_status_counter = 1
             time_counter += 1
             time_counter_changed = True
 
-          drones_status_counter += 1
-          if check_if_all_inst_are_executed():
-            break
 
         self.processed_data.append(process_data_to_save)
       else:
         break
         
       counter += 1
+    
+    self.print_data_all()
 
   def get_text_by_drones_system_drone_and_height(self, drones_systems, drone, height):
     founded_text = None
@@ -172,20 +212,18 @@ class Db:
     systems_counter = 1
     while True:
       if self.systems.get_elem_by_position(systems_counter):
-        
         if self.systems.get_elem_by_position(systems_counter).data.name == drones_systems:
-
           drones_systems_counter = 1
           while True:
             if self.systems.get_elem_by_position(systems_counter).data.drones_systems.get_elem_by_position(drones_systems_counter):
               if self.systems.get_elem_by_position(systems_counter).data.drones_systems.get_elem_by_position(drones_systems_counter).data.drone == drone:
                 system_counter = 1
-
                 while True:
                   if self.systems.get_elem_by_position(systems_counter).data.drones_systems.get_elem_by_position(drones_systems_counter).data.system.get_elem_by_position(system_counter):
-                    if self.systems.get_elem_by_position(systems_counter).data.drones_systems.get_elem_by_position(drones_systems_counter).data.system.get_elem_by_position(system_counter).data.height == height:
+                    if int(self.systems.get_elem_by_position(systems_counter).data.drones_systems.get_elem_by_position(drones_systems_counter).data.system.get_elem_by_position(system_counter).data.height) == height:
                       founded_text = self.systems.get_elem_by_position(systems_counter).data.drones_systems.get_elem_by_position(drones_systems_counter).data.system.get_elem_by_position(system_counter).data.text
                       break
+                    
                   else:
                     break
 
@@ -424,3 +462,129 @@ class Db:
       message_counter += 1
 
     return founded_drones_system_name
+  
+  
+  def print_data_drones(self):
+    print("/-/-/-/-/-/-/-/-/-/-/-/-/")
+    print("DRONES")
+    self.drones.print_as_list()
+    print("/-/-/-/-/-/-/-/-/-/-/-/-/")
+
+  def print_data_systems(self):
+    print("/-/-/-/-/-/-/-/-/-/-/-/-/")
+    print("SYSTEMS")
+
+    systems_counter = 1
+    while True:
+      systems = self.systems.get_elem_by_position(systems_counter)
+
+      if systems:
+        print(f"System_{systems_counter}:")
+        print(f"* name: {systems.data.name}")
+
+        drones_systems_counter = 1
+        while True:
+          drones_systems = systems.data.drones_systems.get_elem_by_position(drones_systems_counter)
+
+          if drones_systems:
+            print(f"* dronesSystem_{drones_systems_counter}:")
+            print(f"** drone: {drones_systems.data.drone}")
+
+            system_counter = 1
+            while True:
+              system = drones_systems.data.system.get_elem_by_position(system_counter)
+
+              if system:
+                print(f"** system_{system_counter}:")
+                print(f"*** height: {system.data.height}")
+                print(f"*** text: {system.data.text}")
+              else:
+                break
+              system_counter += 1
+          else:
+            break
+          drones_systems_counter += 1
+      else:
+        break
+      systems_counter += 1
+    print("/-/-/-/-/-/-/-/-/-/-/-/-/")
+
+  def print_data_messages(self):
+    print("/-/-/-/-/-/-/-/-/-/-/-/-/")
+    print("MESSAGES")
+
+    messages_counter = 1
+    while True:
+      messages = self.messages.get_elem_by_position(messages_counter)
+
+      if messages:
+        print(f"Message_{messages_counter}:")
+        print(f"* name: {messages.data.name}")
+        print(f"* dronesSystem: {messages.data.drones_system}")
+
+        instructions_counter = 1
+        while True:
+          instructions = messages.data.instructions.get_elem_by_position(instructions_counter)
+
+          if instructions:
+            print(f"* instructions_{instructions_counter}:")
+            print(f"** drone: {instructions.data.drone}")
+            print(f"** moveNum: {instructions.data.move_num}")
+            print(f"** status: {instructions.data.status}")
+
+          else:
+            break
+          instructions_counter += 1
+      else:
+        break
+      messages_counter += 1
+    print("/-/-/-/-/-/-/-/-/-/-/-/-/")
+
+  def print_data_processed_data(self):
+    print("/-/-/-/-/-/-/-/-/-/-/-/-/")
+    print("PROCESSED DATA")
+
+    processed_data_counter = 1
+    while True:
+      processed_data = self.processed_data.get_elem_by_position(processed_data_counter)
+
+      if processed_data:
+        print(f"ProcessedData_{processed_data_counter}:")
+        print(f"* messageName: {processed_data.data.message_name}")
+        print(f"* finalMessage: {processed_data.data.final_message}")
+
+        rows_counter = 1
+        while True:
+          rows = processed_data.data.rows.get_elem_by_position(rows_counter)
+
+          if rows:
+            print(f"* rows_{rows_counter}:")
+            print(f"** time: {rows.data.time}")
+
+            instdrones_counter = 1
+            while True:
+              instdrones = rows.data.instdrones.get_elem_by_position(instdrones_counter)
+
+              if instdrones:
+                print(f"** instdrones_{instdrones_counter}:")
+                print(f"*** drone: {instdrones.data.drone}")
+                print(f"*** inst: {instdrones.data.inst}")
+              else:
+                break
+              instdrones_counter += 1
+          else:
+            break
+          rows_counter += 1
+      else:
+        break
+      processed_data_counter += 1
+    print("/-/-/-/-/-/-/-/-/-/-/-/-/")
+
+  def print_data_all(self):
+    print("##########################")
+    print("##       ALL DATA       ##")
+    print("##########################")
+    self.print_data_drones()
+    self.print_data_messages()
+    self.print_data_systems()
+    self.print_data_processed_data()
