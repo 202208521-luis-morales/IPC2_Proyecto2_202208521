@@ -1,0 +1,4 @@
+# Proyecto 2
+- Luis Rodrigo Morales Florián
+- 20220521
+- LABORATORIO INTRODUCCION A LA PROGRAMACION Y COMPUTACION 2 Sección B
