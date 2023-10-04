@@ -10,7 +10,6 @@ from data_schemas.InstDrones import InstDrones
 
 import xml.etree.ElementTree as ET
 import graphviz
-import time as time_lib
 
 class Db:
   def __init__(self, filename) -> None:
@@ -466,7 +465,6 @@ class Db:
       message_counter += 1
 
     return founded_drones_system_name
-  
   
   def print_data_drones(self):
     print("/-/-/-/-/-/-/-/-/-/-/-/-/")
